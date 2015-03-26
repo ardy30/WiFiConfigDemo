@@ -1,0 +1,74 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.bebeeru.wifi.MainActivity" >
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/rd_static"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Static" />
+
+        <RadioButton
+            android:id="@+id/rd_dhcp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dhcp" />
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/et_ip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="输入ip" />
+
+    <EditText
+        android:id="@+id/et_gateway"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="输入ip" />
+
+    <EditText
+        android:id="@+id/et_dns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="输入ip" />
+
+    <EditText
+        android:id="@+id/et_dns2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="输入ip" />
+
+    <Button
+        android:id="@+id/btn_update"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="设置" />
+
+    <Button
+        android:id="@+id/btn_show"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="获取" />
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
