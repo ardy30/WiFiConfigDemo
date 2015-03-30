@@ -6,12 +6,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.text.TextUtils;
 
 /**
  * 通过反射更新WiFi配置信息
@@ -22,8 +24,8 @@ public class WiFiUtils {
 	
 	private WiFiUtils() {}
 
-	public static void setIpAssignment(IpAssignment ipAssignmentType, WifiConfiguration wifiConf) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		setEnumField(wifiConf, ipAssignmentType.stringValue(), "ipAssignment");
+	public static void setIpAssignment(IpAssignment ipAssignment, WifiConfiguration wifiConf) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		setEnumField(wifiConf, ipAssignment.stringValue(), "ipAssignment");
 	}
 
 	public static void setIpAddress(InetAddress addr, int prefixLength, WifiConfiguration wifiConf) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, InstantiationException, InvocationTargetException {
@@ -70,14 +72,27 @@ public class WiFiUtils {
 	
 	public static NetworkInfo getNetworkInfo(Context context) {
 		WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		DhcpInfo dhcpInfo = wm.getDhcpInfo();
-		
 		NetworkInfo info = new NetworkInfo();
+		DhcpInfo dhcpInfo = wm.getDhcpInfo();
+		if (dhcpInfo == null) {
+			return info; 
+		}
+		
 		info.ipAddress = NetworkUtils.intToInetAddress(dhcpInfo.ipAddress).getHostAddress();
 		info.gateway = NetworkUtils.intToInetAddress(dhcpInfo.gateway).getHostAddress();
 		
 		WifiInfo connectionInfo = wm.getConnectionInfo();
+		if (connectionInfo == null) {
+			return info;
+		}
+		
+		info.macAddress = connectionInfo.getMacAddress();
+		
 		List<WifiConfiguration> configuredNetworks = wm.getConfiguredNetworks();
+		if(configuredNetworks == null) {
+			return info;
+		}
+		
 		for(WifiConfiguration config: configuredNetworks) {
 			if(connectionInfo.getNetworkId() == config.networkId) {
 				// DNS
@@ -86,10 +101,24 @@ public class WiFiUtils {
 					info.dns1 = getDns(dnses, 0);
 					info.dns2 = getDns(dnses, 1);
 				}
+				info.ipAssignment = getIpAssignment(config);
 				break;
 			}
 		}
 		return info;
+	}
+	
+	public static WifiConfiguration getConnectedWifiConfiguration(Context context) {
+		WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		
+		WifiInfo connectionInfo = wm.getConnectionInfo();
+		List<WifiConfiguration> configuredNetworks = wm.getConfiguredNetworks();
+		for(WifiConfiguration config: configuredNetworks) {
+			if(connectionInfo.getNetworkId() == config.networkId) {
+				return config;
+			}
+		}
+		return null;
 	}
 	
 	private static String getDns(ArrayList<InetAddress> dnses, int index) {
@@ -116,13 +145,22 @@ public class WiFiUtils {
 		return null;
 	}
 	
+	private static IpAssignment getIpAssignment(WifiConfiguration wifiConfig) {
+		IpAssignment ipAssignment = IpAssignment.UNKNOWN;
+		try {
+			Field f = wifiConfig.getClass().getField("ipAssignment");
+			Object object = f.get(wifiConfig);
+			ipAssignment = IpAssignment.valueOf(object.toString());
+		} catch (Exception e) {
+		}
+		return ipAssignment;
+	}
 	
 	// ============================
 	// 反射
 	// ============================
 
 	private static Object getField(Object obj, String name) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException { 
-		
 		Field f = obj.getClass().getField(name);
 		Object out = f.get(obj);
 		return out;
@@ -142,12 +180,13 @@ public class WiFiUtils {
 	
 	public static class NetworkInfo {
 		
-		String ipAddress;
-		String gateway;
-		String dns1;
-		String dns2;
-		String subnetMask = "255.255.255.0";
-		IpAssignment ipAssignment;
+		public String ipAddress;
+		public String gateway;
+		public String dns1;
+		public String dns2;
+		public String subnetMask = "255.255.255.0";
+		public String macAddress;
+		public IpAssignment ipAssignment;
 		
 		@Override
 		public String toString() {
@@ -157,14 +196,29 @@ public class WiFiUtils {
 			sb.append("\n"); sb.append(dns1 == null ? "" : dns1);
 			sb.append("\n"); sb.append(dns2 == null ? "" : dns2);
 			sb.append("\n"); sb.append(subnetMask == null ? "" : subnetMask);
+			sb.append("\n"); sb.append(macAddress == null ? "" : macAddress);
 			sb.append("\n"); sb.append(ipAssignment == null ? "" : ipAssignment.stringValue());
 			return sb.toString();
+		}
+		
+		public boolean isValid() {
+			if (IpAssignment.STATIC == ipAssignment) {
+				if (TextUtils.isEmpty(ipAddress) || TextUtils.isEmpty(gateway)) {
+					return false;
+				}
+				boolean matchIpAddress = Pattern.matches("^\\d+\\.\\d+\\.\\d+\\.\\d+$", ipAddress);
+				boolean matchGateway = Pattern.matches("^\\d+\\.\\d+\\.\\d+\\.\\d+$", gateway);
+				if (!matchGateway || !matchGateway) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	
 	public static enum IpAssignment {
 		
-		STATIC("STATIC"), DHCP("DHCP");
+		STATIC("STATIC"), DHCP("DHCP"), UNKNOWN("UNKNOWN");
 
 		private final String value;
 

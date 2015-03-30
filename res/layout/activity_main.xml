@@ -34,25 +34,25 @@
         android:id="@+id/et_ip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="输入ip" />
+        android:hint="IP" />
 
     <EditText
         android:id="@+id/et_gateway"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="输入ip" />
+        android:hint="网关" />
 
     <EditText
         android:id="@+id/et_dns"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="输入ip" />
+        android:hint="DNS1" />
 
     <EditText
         android:id="@+id/et_dns2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="输入ip" />
+        android:hint="DNS2" />
 
     <Button
         android:id="@+id/btn_update"
@@ -64,7 +64,7 @@
         android:id="@+id/btn_show"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="获取" />
+        android:text="刷新" />
 
     <TextView
         android:id="@+id/tv"

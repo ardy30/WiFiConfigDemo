@@ -1,5 +1,7 @@
 package com.bebeeru.wifi;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.List;
 
@@ -12,12 +14,14 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bebeeru.wifi.WiFiUtils.IpAssignment;
+import com.bebeeru.wifi.WiFiUtils.NetworkInfo;
 
 /**
  * 配置WiFi信息
@@ -51,12 +55,6 @@ public class MainActivity extends Activity {
 		mGatewayView = (EditText) findViewById(R.id.et_gateway);
 		mDns1View = (EditText) findViewById(R.id.et_dns);
 		mDns2View = (EditText) findViewById(R.id.et_dns2);
-		
-		mIpAddressView.setText("192.168.0.222");
-		mGatewayView.setText("192.168.0.1");
-		mDns1View.setText("8.8.8.8");
-		mDns2View.setText("8.8.4.4");
-		
 		mInfoView = (TextView) findViewById(R.id.tv);
 		
 		findViewById(R.id.btn_update).setOnClickListener(new OnClickListener() {
@@ -94,6 +92,23 @@ public class MainActivity extends Activity {
 				Toast.makeText(MainActivity.this, mIpAssignment.stringValue(), Toast.LENGTH_SHORT).show();
 			}
 		});
+		
+		setDefautValues();
+	}
+	
+	private void setDefautValues() {
+		NetworkInfo networkInfo = WiFiUtils.getNetworkInfo(this);
+		if (networkInfo != null) {
+			setValue(mIpAddressView, networkInfo.ipAddress);
+			setValue(mGatewayView, networkInfo.gateway);
+			setValue(mDns1View, networkInfo.dns1);
+			setValue(mDns1View, networkInfo.dns1);
+			setValue(mInfoView, networkInfo.toString());
+		}
+	}
+	
+	private void setValue(TextView view, String text) {
+		view.setText(text == null ? "" : text);
 	}
 	
 	/*
@@ -146,7 +161,7 @@ public class MainActivity extends Activity {
 		if (wifiConf == null) {
 			return false;
 		}
-        
+		
 		// mWifiManager.reconnect();
 		mWifiManager.disconnect();
 		try{
